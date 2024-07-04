@@ -2,6 +2,7 @@ import pandas as pd
 from enum import Enum, auto
 from PIL import Image as PILImage
 from utils import LOG
+from io import StringIO
 
 class ContentType(Enum):
     TEXT = auto()
@@ -33,10 +34,10 @@ class Content:
 
 class TableContent(Content):
     def __init__(self, data, translation=None):
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(data[1:], columns=data[0])
 
         # Verify if the number of rows and columns in the data and DataFrame object match
-        if len(data) != len(df) or len(data[0]) != len(df.columns):
+        if len(data) != len(df) + 1 or len(data[0]) != len(df.columns):
             raise ValueError("The number of rows and columns in the extracted table data and DataFrame object do not match.")
         
         super().__init__(ContentType.TABLE, df)
@@ -48,10 +49,10 @@ class TableContent(Content):
 
             LOG.debug(translation)
             # Convert the string to a list of lists
-            table_data = [row.strip().split() for row in translation.strip().split('\n')]
-            LOG.debug(table_data)
+            # table_data = [row.strip().split() for row in translation.strip().split('\n')]
+            # LOG.debug(table_data)
             # Create a DataFrame from the table_data
-            translated_df = pd.DataFrame(table_data[1:], columns=table_data[0])
+            translated_df = pd.read_csv(StringIO(translation))
             LOG.debug(translated_df)
             self.translation = translated_df
             self.status = status
@@ -74,4 +75,5 @@ class TableContent(Content):
         target_df.at[row_idx, col_idx] = new_value
 
     def get_original_as_str(self):
-        return self.original.to_string(header=False, index=False)
+        LOG.debug(self.original.to_string())
+        return self.original.to_csv(index=False)

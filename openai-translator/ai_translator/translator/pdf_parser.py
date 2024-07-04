@@ -49,9 +49,10 @@ class PDFParser:
 
                 # Handling tables
                 if tables:
-                    table = TableContent(tables)
-                    page.add_content(table)
-                    LOG.debug(f"[table]\n{table}")
+                    for t in tables:
+                        table = TableContent(t)
+                        page.add_content(table)
+                        LOG.debug(f"[table]\n{table}")
 
                 book.add_page(page)
 
